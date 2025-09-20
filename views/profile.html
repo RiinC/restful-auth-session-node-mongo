@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header text-center">User Profile</div>
+                    <div class="card-body">
+                        <div id="profileInfo" class="mb-3">
+                            <p>Loading profile...</p>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button id="logoutBtn" class="btn btn-danger">Logout</button>
+                            <a href="/auth/login" class="btn btn-secondary">Back to Login</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Load user profile
+        async function loadProfile() {
+            try {
+                const response = await fetch('/auth/profile');
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('profileInfo').innerHTML = `
+                        <h5>Welcome, ${data.username}!</h5>
+                    `;
+                } else {
+                    // If profile API fails, use stored user info from login
+                    const storedUsername = localStorage.getItem('username');
+
+                    if (storedUsername) {
+                        document.getElementById('profileInfo').innerHTML = `
+                            <h5>Welcome, ${storedUsername}!</h5>
+                            <div class="alert alert-warning">Profile API temporarily unavailable, showing cached information.</div>
+                        `;
+                    } else {
+                        document.getElementById('profileInfo').innerHTML = `
+                            <h5>Welcome! You are logged in successfully.</h5>
+                            <p>Profile information is not available at the moment.</p>
+                            <div class="alert alert-warning">${data.error || 'Unable to load profile details'}</div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                // If there's a network error, try to use stored user info
+                const storedUsername = localStorage.getItem('username');
+
+                if (storedUsername) {
+                    document.getElementById('profileInfo').innerHTML = `
+                        <h5>Welcome, ${storedUsername}!</h5>
+                        <div class="alert alert-warning">Profile API temporarily unavailable, showing cached information.</div>
+                    `;
+                } else {
+                    document.getElementById('profileInfo').innerHTML = `
+                        <h5>Welcome! You are logged in successfully.</h5>
+                        <p>Profile information is not available at the moment.</p>
+                        <div class="alert alert-warning">Unable to load profile details. You are still logged in.</div>
+                    `;
+                }
+            }
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', async function () {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Clear stored user info
+                    localStorage.removeItem('userId');
+                    localStorage.removeItem('username');
+                    alert(data.message);
+                    window.location.href = '/auth/login';
+                } else {
+                    alert('Logout failed: ' + data.error);
+                }
+            } catch (error) {
+                alert('Logout failed. Please try again.');
+            }
+        });
+
+        // Load profile on page load
+        loadProfile();
+    </script>
+</body>
+
+</html>
