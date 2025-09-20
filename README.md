@@ -1,4 +1,4 @@
-# restful-auth-session-node-mongo
+# Simple Restful API Application for Login and Logout
 
 A RESTful authentication API using Node.js, Express, MongoDB, and session-based authentication.
 
